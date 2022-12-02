@@ -1,6 +1,7 @@
 const express = require('express');
 const { reset } = require('nodemon');
 const cookieParser = require('cookie-parser');
+const { get } = require('request-promise-native');
 const app = express();
 const PORT = 8080;
 
@@ -33,7 +34,14 @@ function generateRandomString() {
   return r;
 };
 
-
+const getUserByEmail = (email) => {
+  for (const uid in users) {
+    const userObj = users[uid];
+    if (userObj.email === email) {
+      return users[uid];
+    }
+  }
+}
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -78,28 +86,24 @@ app.get("/u/:id", (req, res) => {
 //delete urls data
 
 app.post("/urls/:id/delete", (req, res) => {
-  console.log(urlDatabase);
-  console.log(req.params.id);
   const shortURL = req.params.id;
   delete urlDatabase[shortURL];
   res.redirect("/urls");
 });
 
-// updates current long url to assigned long url
+// Edit updates current long url to assigned long url
 
-app.post('/urls/:id', (req, res) => {
-  // console.log('req.body', req.body);
-  const value = req.body.longURL;
+app.post("/urls/:id", (req, res) => {
+  const longURL = req.body.longURL;
   const shortURL = req.params.id;
-  urlDatabase[shortURL] = value;
-  // const longURL = urlDatabase[req.params.id];
-  res.redirect('/urls');
+  urlDatabase[shortURL] = longURL;
+  res.redirect("/urls");
+  
 });
 
 // redirection to newly created ID (shorturl) route
 
 app.post("/urls", (req, res) => {
-  // console.log('req.body', req.body);
   const newURL = generateRandomString();
   urlDatabase[newURL] = req.body.longURL;
   res.redirect(`/urls/${newURL}`);
@@ -110,13 +114,25 @@ app.get('/urls.json', (req, res) => {
 });
 
 //create login 
-
-
-app.post('/login', (req, res) => {
-  const users = req.body.user;
-  res.cookie('user_id', users);
-  res.redirect('/urls');
+app.get('/login', (req, res) => {
+  res.render('urls_login');
 });
+
+
+//POST login
+app.post('/login', (req, res) => {
+  const { email, password } = req.body
+  if (!email || !password) {
+    // res.status(400).send('empty strings cannot login');
+    return res.redirect('/login');
+  }
+  const existingUser = getUserByEmail(email); //check if my email exists
+  if (existingUser && existingUser.password === password) { // if my userID exists and if saved password === password input
+    return res.redirect('/urls');
+  }
+  res.redirect('/login');
+});
+
 
 
 app.post('/logout', (req, res) => {
@@ -129,25 +145,13 @@ app.get('/register', (req, res) => {
 });
 
 
-
-
-const getUserByEmail = (email) => {
-  for (const uid in users) {
-    const userObj = users[uid];
-    if (userObj.email === email) {
-      return users[uid];
-    }
-  }
-}
-
-
 //register -- POST
 // add user
 app.post('/register', (req, res) => {
   // console.log('req.body', req.body);
   // const user = ( users );
   const { email, password } = req.body
-  if (!email || !password ) {
+  if (!email || !password) {
     return res.status(400).send('empty strings cannot register');
   }
 
@@ -162,7 +166,7 @@ app.post('/register', (req, res) => {
     password
   };
   res.cookie('user_id', newID);
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 
