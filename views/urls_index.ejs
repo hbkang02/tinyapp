@@ -19,6 +19,7 @@
   <body>
     <main style="margin: 1em;">
       <h3>My URLs</h3>
+      <% if (user) { %>
       <table class="table">
         <thead>
           <tr>
@@ -32,7 +33,7 @@
           <% for (let id in urls) { %>
             <tr>
               <td><%= id %></td>
-              <td><%= urls[id] %> </td>
+              <td><%= urls[id].longURL %> </td>
               <td><form method="get" action="/urls/<%= id%>">
                 <!-- <td><a class="btn btn-outline-primary" href="/urls/<%= id %>">Edit</a> </td> -->
                 <button type="submit">Edit</button>
@@ -40,10 +41,11 @@
               <td><form method="POST" action="/urls/<%= id%>/delete">
                 <button type="submit">Delete</button>
               </form></td>
+              <% } %>
             </tr>
-          <% } %>
         </tbody>
       </table>
+     
     </main>
    
 
