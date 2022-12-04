@@ -3,7 +3,6 @@ const { reset } = require('nodemon');
 const cookieSession = require('cookie-session');
 const { get } = require('request-promise-native');
 const bcrypt = require('bcryptjs');
-const ejsLint = require('ejs-lint');
 const app = express();
 const PORT = 8080;
 
@@ -190,22 +189,17 @@ app.post('/login', (req, res) => {
 
   const getUser = getUserByEmail(email, users); //check if my email exists
   if (!email || !password) {
-    return res.status(400).send('You need to provide email and password to login');
+    return res.status(400).send("You need to provide email and password to login. Please <a href='/login'>Login</a>");
   }
-  if (!getUser && !bcrypt.compareSync(password, getUser.password)) { // if my userID exists and if saved password === password input
-    return res.status(400).send("Either email or password do not exist Please <a href='/login'>Login</a>");
+  if (getUser && bcrypt.compareSync(password, getUser.password)) { // if my userID exists and if saved password === password input
+    req.session.user_id = getUser.id;
+    return res.redirect('/urls');
     // log("stored: " + req.session.user_id);
   }
-  req.session.user_id = getUser.id;
-  return res.redirect('/urls');
+  return res.status(400).send("Either email or password do not exist Please <a href='/login'>Login</a>");
   // const userID = res.session.user_id // ********
 });
 
-//POST logout
-app.post('/logout', (req, res) => {
-  res.clearCookie(session);
-  res.redirect('/urls');
-});
 
 app.get('/register', (req, res) => {
   const userID = req.session.user_id;
@@ -240,7 +234,12 @@ app.post('/register', (req, res) => {
   res.redirect('/urls');
 });
 
-
+//POST logout
+app.post('/logout', (req, res) => {
+  res.clearCookie('session');
+  res.clearCookie('session.sig');
+  res.redirect('/register');
+});
 ///////////////////////////////////////////////////////////
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
