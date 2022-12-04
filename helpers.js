@@ -3,23 +3,23 @@ function generateRandomString() {
   return r;
 };
 
-// const getUserByEmail = function(email) {
-//   const values = Object.values(users);
-//   for (const user of values) {
-//     if (user.email === email) {
-//       return user;
-//     }
-//   }
-// }
-
-const getUserByEmail = (email, users) => {
-  for (const uid in users) {
-    const userObj = users[uid];
-    if (userObj.email === email) {
-      return users[uid];
+const getUserByEmail = function(email, users) {
+  const values = Object.values(users);
+  for (const user of values) {
+    if (user.email === email) {
+      return user;
     }
   }
 }
+
+// const getUserByEmail = (email, users) => {
+//   for (const uid in users) {
+//     const userObj = users[uid];
+//     if (userObj.email === email) {
+//       return users[uid];
+//     }
+//   }
+// }
 
 // const urlsForUser = function(userId) {
 //   const urls = {};
