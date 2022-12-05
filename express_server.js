@@ -19,11 +19,11 @@ app.use(express.urlencoded({ extended: true }));
 const urlDatabase = {
   b6UTxQ: {
     longURL: 'http://www.lighthouselabs.ca',
-    userID: 'aJ481W',
+    userID: 'user3RandomID',
   },
   i3BoGr: {
     longURL: 'http://www.google.ca',
-    userID: 'aJ481W',
+    userID: 'user3RandomID',
   },
 };
 
@@ -97,7 +97,6 @@ app.get("/urls/new", (req, res) => {
 
   }
   const templateVars = {
-    urls: urlDatabase,
     user: users[userID]
   };
   res.render("urls_new", templateVars)
@@ -105,34 +104,40 @@ app.get("/urls/new", (req, res) => {
 
 // GET /urls/:id
 // brings id = shortUrl, longurl = longurl
-app.get("/urls/:id", (req, res) => {
+app.get("/urls/:shortURL", (req, res) => {
   const userID = req.session.user_id;
-  const shortURL = req.params.id;
+  const shortURL = req.params.shortURL;
   const userUrls = urlsForUser(userID, urlDatabase);
   const templateVars = {
-    id: shortURL,
-    longURL: urlDatabase[shortURL].longURL,
+    urlDatabase, 
+    userUrls, 
+    shortURL, 
     user: users[userID]
   };
 
-  if (!userID || !userUrls[shortURL]) {
-    return res.status(400).send('Login required');
-  } else if (!urlDatabase[shortURL]) {
-    return res.status(400).send('Short url does not exist');
-  }
-  res.render("urls_show", templateVars);
+  // console.log('asdgf', shortURL);
+  // for (let e in urlDatabase) {
+  //   console.log("id: " + e + " URL: " + urlDatabase[e].longURL);
+  // }
 
+  if (!urlDatabase[shortURL]) {
+    return res.status(400).send('Short url does not exist');
+  } else if (!userID || !userUrls[shortURL]) {
+    return res.status(400).send('Login required');
+  } else {
+  res.render("urls_show", templateVars);
+  }
 });
 
 // POST /urls/:id
 // Edit updates current long url to assigned long url
-app.post("/urls/:id", (req, res) => {
-  const longURL = req.body.longURL;
-  const shortURL = req.params.id;
+app.post("/urls/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
+  // const longURL = req.body.longURL;
   const userID = req.session.user_id;
 
   if (userID && userID === urlDatabase[shortURL].userID) {
-    urlDatabase[shortURL].longURL = longURL;
+    urlDatabase[shortURL].longURL = req.body.longURL;
     res.redirect("/urls");
   }
   return res.status(400).send('You cannot do that: check login or short url');
@@ -140,8 +145,8 @@ app.post("/urls/:id", (req, res) => {
 
 // POST /urls/:id/delete
 // delete urls data
-app.post("/urls/:id/delete", (req, res) => {
-  const shortURL = req.params.id;
+app.post("/urls/:shortURL/delete", (req, res) => {
+  const shortURL = req.params.shortURL;
   const userID = req.session.user_id;
   if (userID && userID === urlDatabase[shortURL].userID) {
     delete urlDatabase[shortURL];
@@ -152,15 +157,16 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // GET /u/:id
 // redirect to website of longURL
-app.get("/u/:id", (req, res) => {
-  const shortURL = req.body.shortURL;
+app.get("/u/:shortURL", (req, res) => {
+  const shortURL = req.params.shortURL;
   const userID = req.session.user_id;
   const userUrls = urlsForUser(userID, urlDatabase);
 
+  // console.log('asdgf', shortURL);
   if (!urlDatabase[shortURL]) {
     return res.status(400).send('Short url does not exist!');
   }
-  const longURL = urlDatabase[req.params.id].longURL;
+  const longURL = urlDatabase[shortURL].longURL;
   res.redirect(longURL);
 });
 
@@ -185,6 +191,7 @@ app.get('/login', (req, res) => {
 
 //POST login
 app.post('/login', (req, res) => {
+  console.log('ladf');
   const { email, password } = req.body;
 
   const getUser = getUserByEmail(email, users); //check if my email exists
@@ -203,6 +210,7 @@ app.post('/login', (req, res) => {
 
 app.get('/register', (req, res) => {
   const userID = req.session.user_id;
+  console.log('userid: ', userID);
   // const id = req.cookies.user_id;
   // const user = user[id]
   if (userID) {
@@ -236,9 +244,10 @@ app.post('/register', (req, res) => {
 
 //POST logout
 app.post('/logout', (req, res) => {
+  // console.log('adsf');
   res.clearCookie('session');
   res.clearCookie('session.sig');
-  res.redirect('/register');
+  res.redirect('/login');
 });
 ///////////////////////////////////////////////////////////
 app.listen(PORT, () => {
