@@ -115,11 +115,6 @@ app.get("/urls/:shortURL", (req, res) => {
     user: users[userID]
   };
 
-  // console.log('asdgf', shortURL);
-  // for (let e in urlDatabase) {
-  //   console.log("id: " + e + " URL: " + urlDatabase[e].longURL);
-  // }
-
   if (!urlDatabase[shortURL]) {
     return res.status(400).send('Short url does not exist');
   } else if (!userID || !userUrls[shortURL]) {
@@ -201,18 +196,14 @@ app.post('/login', (req, res) => {
   if (getUser && bcrypt.compareSync(password, getUser.password)) { // if my userID exists and if saved password === password input
     req.session.user_id = getUser.id;
     return res.redirect('/urls');
-    // log("stored: " + req.session.user_id);
   }
   return res.status(400).send("Either email or password do not exist Please <a href='/login'>Login</a>");
-  // const userID = res.session.user_id // ********
 });
 
 
 app.get('/register', (req, res) => {
   const userID = req.session.user_id;
   console.log('userid: ', userID);
-  // const id = req.cookies.user_id;
-  // const user = user[id]
   if (userID) {
     return res.redirect('/urls');
   }
@@ -237,14 +228,12 @@ app.post('/register', (req, res) => {
     email,
     password: bcrypt.hashSync(req.body.password, 10)
   };
-  // users.push(userID);
-  req.session.user_id = userID; // get cookie res.cookie('user_id', id) ********************
+  req.session.user_id = userID; 
   res.redirect('/urls');
 });
 
 //POST logout
 app.post('/logout', (req, res) => {
-  // console.log('adsf');
   res.clearCookie('session');
   res.clearCookie('session.sig');
   res.redirect('/login');
